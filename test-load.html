@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Carga - Power Automate</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e3a8a;
+            margin-bottom: 10px;
+        }
+        .info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #162e6b;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            border: 2px solid #1e3a8a;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test de Carga - Sistema de Votación</h1>
+        <p>Simula múltiples votos simultáneos para probar Power Automate</p>
+        
+        <div class="info">
+            <strong>⚠️ Importante:</strong> Este test enviará múltiples peticiones a tu flujo de Power Automate. 
+            Úsalo solo para pruebas. Los votos generados serán ficticios.
+        </div>
+
+        <div class="controls">
+            <label>Número de votos a simular:</label>
+            <input type="number" id="numVotes" value="10" min="1" max="200">
+            
+            <label>Delay entre peticiones (ms):</label>
+            <input type="number" id="delay" value="100" min="0" max="5000">
+            <small style="color: #666;">0 = todas simultáneas, 100 = 10 votos/seg, 500 = 2 votos/seg</small>
+
+            <label>Endpoint de Power Automate:</label>
+            <input type="text" id="endpoint" value="https://default90167654ed084e3d85e72724f8597c.cf.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3633047b0e104b2db8e5fe1d5e43fca8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ATuSc2S0e6prkr64boaZK_1ZhIC6ZHhmIEj98MGcneY">
+
+            <button id="startTest" onclick="startTest()">Iniciar Test de Carga</button>
+            <button id="stopTest" onclick="stopTest()" style="display:none; background: #dc3545;">Detener Test</button>
+        </div>
+
+        <div class="stats" id="stats" style="display:none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalSent">0</div>
+                <div class="stat-label">Enviados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number success" id="totalSuccess">0</div>
+                <div class="stat-label">Exitosos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number error" id="totalErrors">0</div>
+                <div class="stat-label">Errores</div>
+            </div>
+        </div>
+
+        <div class="results" id="results" style="display:none;"></div>
+    </div>
+
+    <script>
+        const candidates = [
+            { id: 1, name: "Jose Sergio Veintemilla" },
+            { id: 2, name: "Voto en Blanco" }
+        ];
+
+        const names = [
+            "Juan Pérez", "María González", "Carlos Rodríguez", "Ana Martínez", "Luis López",
+            "Carmen García", "Jorge Hernández", "Laura Díaz", "Pedro Ramírez", "Isabel Torres",
+            "Francisco Flores", "Rosa Morales", "Miguel Jiménez", "Teresa Ruiz", "Antonio Álvarez",
+            "Patricia Castro", "José Romero", "Marta Sánchez", "Manuel Ortiz", "Lucía Vargas",
+            "Rafael Mendoza", "Cristina Silva", "Alberto Reyes", "Elena Cruz", "Ricardo Herrera",
+            "Diana Núñez", "Sergio Paredes", "Gabriela Medina", "Felipe Aguilar", "Daniela Rojas",
+            "Andrés Molina", "Carolina Vega", "Fernando Ibáñez", "Alejandra Campos", "Pablo Guerrero",
+            "Sofía Delgado", "Javier Ramos", "Valeria Mejía", "Eduardo Navarro", "Paola Ríos",
+            "Roberto Salinas", "Natalia Peña", "Óscar León", "Andrea Guzmán", "Raúl Cortés",
+            "Camila Chávez", "Hugo Fuentes", "Verónica Carrillo", "Rodrigo Domínguez", "Claudia Santana"
+        ];
+
+        let testRunning = false;
+        let stats = { sent: 0, success: 0, errors: 0 };
+
+        function log(message, type = '') {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            results.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById('totalSent').textContent = stats.sent;
+            document.getElementById('totalSuccess').textContent = stats.success;
+            document.getElementById('totalErrors').textContent = stats.errors;
+        }
+
+        async function sendVote(voteNumber, endpoint) {
+            const randomName = names[Math.floor(Math.random() * names.length)] + ` ${voteNumber}`;
+            const randomCandidate = candidates[Math.floor(Math.random() * candidates.length)];
+            const now = new Date();
+
+            const payload = {
+                votante: {
+                    nombreVotante: randomName,
+                    fecha: now.toLocaleDateString('es-PE'),
+                    hora: now.toLocaleTimeString('es-PE')
+                },
+                candidato: {
+                    candidatoId: randomCandidate.id,
+                    candidatoNombre: randomCandidate.name
+                }
+            };
+
+            stats.sent++;
+            updateStats();
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    stats.success++;
+                    log(`✅ Voto #${voteNumber}: ${randomName} → ${randomCandidate.name}`, 'success');
+                } else {
+                    stats.errors++;
+                    log(`❌ Voto #${voteNumber} falló: HTTP ${response.status}`, 'error');
+                }
+            } catch (error) {
+                stats.errors++;
+                log(`❌ Voto #${voteNumber} error: ${error.message}`, 'error');
+            }
+
+            updateStats();
+        }
+
+        async function startTest() {
+            const numVotes = parseInt(document.getElementById('numVotes').value);
+            const delay = parseInt(document.getElementById('delay').value);
+            const endpoint = document.getElementById('endpoint').value;
+
+            if (!endpoint) {
+                alert('Por favor ingresa el endpoint de Power Automate');
+                return;
+            }
+
+            if (numVotes < 1 || numVotes > 200) {
+                alert('Por favor ingresa un número entre 1 y 200');
+                return;
+            }
+
+            // Reset
+            stats = { sent: 0, success: 0, errors: 0 };
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('stats').style.display = 'grid';
+            updateStats();
+
+            // UI
+            document.getElementById('startTest').style.display = 'none';
+            document.getElementById('stopTest').style.display = 'block';
+            document.getElementById('numVotes').disabled = true;
+            document.getElementById('delay').disabled = true;
+            document.getElementById('endpoint').disabled = true;
+
+            testRunning = true;
+            log(`🚀 Iniciando test de carga: ${numVotes} votos con ${delay}ms de delay`);
+            log(`📡 Endpoint: ${endpoint.substring(0, 50)}...`);
+            log(`⏱️ Tiempo estimado: ${((numVotes * delay) / 1000).toFixed(1)} segundos`);
+            log('─'.repeat(80));
+
+            const startTime = Date.now();
+
+            // Enviar votos
+            for (let i = 1; i <= numVotes; i++) {
+                if (!testRunning) {
+                    log('⚠️ Test detenido por el usuario', 'error');
+                    break;
+                }
+
+                sendVote(i, endpoint); // No await para permitir concurrencia
+
+                if (delay > 0 && i < numVotes) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+
+            // Esperar a que todas las peticiones terminen
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            const endTime = Date.now();
+            const duration = ((endTime - startTime) / 1000).toFixed(2);
+
+            log('─'.repeat(80));
+            log(`✅ Test completado en ${duration} segundos`);
+            log(`📊 Resumen: ${stats.success}/${stats.sent} exitosos, ${stats.errors} errores`);
+            log(`📈 Tasa de éxito: ${((stats.success / stats.sent) * 100).toFixed(1)}%`);
+
+            // UI
+            document.getElementById('startTest').style.display = 'block';
+            document.getElementById('stopTest').style.display = 'none';
+            document.getElementById('numVotes').disabled = false;
+            document.getElementById('delay').disabled = false;
+            document.getElementById('endpoint').disabled = false;
+            testRunning = false;
+        }
+
+        function stopTest() {
+            testRunning = false;
+            log('⏹️ Deteniendo test...', 'error');
+        }
+    </script>
+</body>
+</html>
