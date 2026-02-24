@@ -104,7 +104,7 @@ export default function Voting() {
         <div className="confirm-modal-content">
           <div className="confirm-icon">⚠️</div>
           <p className="confirm-text">
-            ¿Está seguro que desea votar por:
+            ¿Está seguro de que desea votar por este candidato?
           </p>
           <div className="confirm-candidate">
             <img 

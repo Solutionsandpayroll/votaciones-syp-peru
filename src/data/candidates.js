@@ -2,7 +2,7 @@ export const candidates = [
   {
     id: 1,
     name: "Jose Sergio Veintemilla",
-    photo: "https://i.pravatar.cc/300?img=12",
+    photo: "/Candidato_1.jpeg",
     color: "#1e3a8a"
   },
   {

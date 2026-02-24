@@ -4,7 +4,13 @@ import './CandidateCard.css'
 
 export default function CandidateCard({ candidate, onSelect, isSelected, showVoteButton = true }) {
   return (
-    <Card hover={showVoteButton} selected={isSelected} className="candidate-card">
+    <Card
+      hover={showVoteButton}
+      selected={isSelected}
+      className="candidate-card"
+      onClick={showVoteButton ? () => onSelect(candidate) : undefined}
+      style={showVoteButton ? { cursor: 'pointer' } : {}}
+    >
       <div className="candidate-photo-container">
         <img 
           src={candidate.photo} 
@@ -18,7 +24,7 @@ export default function CandidateCard({ candidate, onSelect, isSelected, showVot
 
         {showVoteButton && (
           <Button 
-            onClick={() => onSelect(candidate)}
+            onClick={(e) => { e.stopPropagation(); onSelect(candidate); }}
             variant={isSelected ? 'success' : 'primary'}
             fullWidth
           >
