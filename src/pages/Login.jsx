@@ -60,7 +60,7 @@ export default function Login() {
   const handleResultsAccess = (e) => {
     e.preventDefault()
     setPasswordError('')
-    const correctPassword = import.meta.env.VITE_RESULTS_PASSWORD
+    const correctPassword = import.meta.env.RESULTS_PASSWORD
     if (resultsPassword === correctPassword) {
       setShowResultsModal(false)
       setResultsPassword('')
