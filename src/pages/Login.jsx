@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVoting } from '../context/VotingContext'
-import { checkIfUserVoted } from '../config/powerAutomate'
+import { checkIfUserVoted } from '../config/neonApi'
 import EMPLOYEES from '../data/employees'
 import Card from '../components/Card'
 import Button from '../components/Button'
@@ -12,13 +12,16 @@ export default function Login() {
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
+  const [showResultsModal, setShowResultsModal] = useState(false)
+  const [resultsPassword, setResultsPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   const navigate = useNavigate()
   const { login } = useVoting()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (!fullName) {
       setError('Por favor seleccione su nombre')
       return
@@ -27,16 +30,14 @@ export default function Login() {
     setIsVerifying(true)
 
     try {
-      // Verificar contra Excel si el usuario ya votó
       const verification = await checkIfUserVoted(fullName)
-      
+
       if (verification.hasVoted) {
         setError('Este usuario ya ha votado anteriormente')
         setIsVerifying(false)
         return
       }
 
-      // Intentar login local
       const result = login(fullName)
       if (result.success) {
         navigate('/voting')
@@ -54,6 +55,19 @@ export default function Login() {
   const handleNameChange = (e) => {
     setFullName(e.target.value)
     setError('')
+  }
+
+  const handleResultsAccess = (e) => {
+    e.preventDefault()
+    setPasswordError('')
+    const correctPassword = import.meta.env.VITE_RESULTS_PASSWORD
+    if (resultsPassword === correctPassword) {
+      setShowResultsModal(false)
+      setResultsPassword('')
+      navigate('/results')
+    } else {
+      setPasswordError('Contraseña incorrecta')
+    }
   }
 
   return (
@@ -111,8 +125,55 @@ export default function Login() {
               {isVerifying ? 'Verificando...' : 'Ingresar al Sistema'}
             </Button>
           </form>
+
+          <div className="results-access">
+            <button
+              className="results-link"
+              onClick={() => { setShowResultsModal(true); setPasswordError(''); setResultsPassword('') }}
+            >
+              📊 Ver Resultados
+            </button>
+          </div>
         </Card>
       </div>
+
+      {/* Modal contraseña resultados */}
+      {showResultsModal && (
+        <div className="modal-overlay" onClick={() => setShowResultsModal(false)}>
+          <div className="modal-content results-modal" onClick={e => e.stopPropagation()}>
+            <h2 className="modal-title">🔒 Acceso a Resultados</h2>
+            <p className="modal-subtitle">Ingrese la contraseña de administrador</p>
+            <form onSubmit={handleResultsAccess} className="password-form">
+              <input
+                type="password"
+                value={resultsPassword}
+                onChange={e => { setResultsPassword(e.target.value); setPasswordError('') }}
+                placeholder="Contraseña"
+                className="form-input password-input"
+                autoFocus
+              />
+              {passwordError && (
+                <div className="error-message">
+                  <span className="error-icon">⚠</span>
+                  {passwordError}
+                </div>
+              )}
+              <div className="modal-actions">
+                <Button type="submit" variant="primary" fullWidth>
+                  Acceder
+                </Button>
+                <button
+                  type="button"
+                  className="cancel-link"
+                  onClick={() => setShowResultsModal(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal de carga */}
       <LoadingModal 

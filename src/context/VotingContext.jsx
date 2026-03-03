@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { candidates as initialCandidates } from '../data/candidates'
-import { sendVoteToPowerAutomate } from '../config/powerAutomate'
+import { registrarVoto } from '../config/neonApi'
 
 const VotingContext = createContext()
 
@@ -60,31 +60,18 @@ export function VotingProvider({ children }) {
 
   const confirmVote = async () => {
     if (selectedCandidate && user && !hasVoted) {
-      // Preparar datos para enviar a Power Automate
-      const now = new Date()
-      const voteData = {
-        nombreVotante: user.identifier,
-        candidatoId: selectedCandidate.id,
-        candidatoNombre: selectedCandidate.name,
-        fecha: now.toLocaleDateString('es-PE'),
-        hora: now.toLocaleTimeString('es-PE')
-      }
+      // Registrar en Neon: votante (sin candidato) + contador candidato (sin votante)
+      const result = await registrarVoto(user.identifier, selectedCandidate.id)
 
-      // Función auxiliar para crear delay
-      const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-      // Enviar a Power Automate y esperar mínimo 4 segundos
-      try {
-        await Promise.all([
-          sendVoteToPowerAutomate(voteData),
-          delay(4000) // Delay de 4 segundos para asegurar que se procese todo
-        ])
-        console.log('✅ Voto enviado correctamente a Power Automate')
-      } catch (error) {
-        console.error('❌ Error enviando a Power Automate:', error)
-        // Esperar los 4 segundos de todas formas para UX consistente
-        await delay(4000)
-        // Continuar con el voto local aunque falle Power Automate
+      if (!result.success) {
+        console.error('❌ Error registrando voto en Neon:', result.error)
+        // Si el error es que ya votó, bloquear
+        if (result.error?.includes('ya ha votado')) {
+          return false
+        }
+        // Para otros errores, continuar con registro local
+      } else {
+        console.log('✅ Voto registrado en Neon correctamente')
       }
 
       // Incrementar votos del candidato seleccionado (local)
@@ -92,7 +79,7 @@ export function VotingProvider({ children }) {
         ...prevVotes,
         [selectedCandidate.id]: prevVotes[selectedCandidate.id] + 1
       }))
-      
+
       // Marcar usuario como votante
       setVotedUsers(prev => [...prev, user.identifier])
       setHasVoted(true)
