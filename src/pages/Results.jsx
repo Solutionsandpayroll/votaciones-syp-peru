@@ -183,6 +183,18 @@ export default function Results() {
           <Button onClick={() => navigate('/')} variant="primary">
             Volver al Inicio
           </Button>
+          <button
+            className="btn-download-pdf"
+            onClick={() => {
+              const container = document.querySelector('.results-container')
+              if (container) {
+                container.setAttribute('data-fecha', new Date().toLocaleString('es-PE'))
+              }
+              window.print()
+            }}
+          >
+            📄 Descargar PDF
+          </button>
         </div>
 
         <div className="results-footer">

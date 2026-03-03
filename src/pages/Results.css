@@ -35,16 +35,6 @@
 
 .stat-icon {
   font-size: 48px;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
 }
 
 .stat-content {
@@ -124,19 +114,6 @@
 .rank-badge {
   font-size: 36px;
   display: block;
-  animation: spin 2s ease-in-out;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg) scale(0);
-  }
-  50% {
-    transform: rotate(180deg) scale(1.2);
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
-  }
 }
 
 .rank-number {
@@ -236,27 +213,113 @@
 }
 
 .result-bar-glow {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
+  display: none;
 }
 
 .results-actions {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
   margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.btn-download-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn-download-pdf:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+
+/* ===== ESTILOS DE IMPRESIÓN / PDF ===== */
+@media print {
+  /* Ocultar elementos de navegación */
+  header,
+  .results-actions,
+  .results-footer,
+  .modal-overlay {
+    display: none !important;
+  }
+
+  body, .results-page {
+    background: white !important;
+  }
+
+  .results-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  /* Título del PDF */
+  .results-container::before {
+    content: 'S&P Perú — Elecciones Supervisor SST 2026 - 2028';
+    display: block;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1e3a8a;
+    text-align: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #1e3a8a;
+  }
+
+  .results-container::after {
+    content: 'Documento generado el ' attr(data-fecha);
+    display: block;
+    font-size: 11px;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 24px;
+  }
+
+  .stat-card {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb;
+  }
+
+  .stat-card:hover {
+    transform: none !important;
+  }
+
+  .result-card {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb;
+    break-inside: avoid;
+  }
+
+  .result-bar-container {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .result-bar {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .historial-table th {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .historial-table tr:nth-child(even) td {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: #f9fafb !important;
+  }
 }
 
 .results-footer {
